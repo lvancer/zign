@@ -10,15 +10,13 @@ class zTester(Generic[Co]):
     def __init__(self, config: Optional[Co]):
         self.config = config
         
-    def forward(self, idx, inputs):
-        pass
-    
-    def eval(self, idx, inputs, outputs, dataset):
+    def test_one(self, idx, inputs):
         pass
         
-    def test(self, dataset):
-        dataloader = dataset.dataloader(1, False)
+    def test(self, dataset, batch_size=1, shuffle=False):
+        dataloader = dataset.dataloader(batch_size, shuffle)
         for idx, inputs in enumerate(dataloader):
             with torch.no_grad():
-                outputs = self.forward(idx, inputs)
-                self.eval(idx, inputs, outputs, dataset)
+                self.test_one(idx, inputs)
+                
+

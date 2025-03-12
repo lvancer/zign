@@ -6,6 +6,8 @@ from typing import TypeVar, Generic, Tuple, Optional
 
 class zDataset(BaseDataset):
     
+    collate_fn = None
+    
     def dataloader(self, batch_size, shuffle=True, collate_fn=None, *args, **kwargs)-> data.DataLoader:
         if collate_fn is None and self.collate_fn is not None:
             collate_fn = self.collate_fn

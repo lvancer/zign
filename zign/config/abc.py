@@ -22,6 +22,7 @@ class BaseConfig():
         for k, v in vars(args).items():
             setattr(self, k, v)
             
+
             
     
             

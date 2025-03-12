@@ -1,5 +1,22 @@
 import torch
 
+def tensors_to_item(obj, str=None):
+    """
+    将输入对象中的所有torch.Tensor转换为对应的数值。
+    支持字典、列表和张量的输入，返回与原结构一致的结果。
+    """
+    if isinstance(obj, dict):
+        return {k: tensors_to_item(v, str) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [tensors_to_item(item, str) for item in obj]
+    elif isinstance(obj, torch.Tensor):
+        if str:
+            return float(format(obj.item(), str))
+            # return float(f"{obj.item():.3f}")
+        return obj.item()
+    else:
+        return obj
+
 
 def str_tensors_values(tensors, sep=',', format="[{key}: {value:.3f}]"):
     """
@@ -41,6 +58,7 @@ def str_tensors_values(tensors, sep=',', format="[{key}: {value:.3f}]"):
 
 
 def apply_operation_on_tensors(v1, v2, operation):
+    
     # 如果v1和v2都是dict，则递归地对每个key应用操作
     if isinstance(v1, dict) and isinstance(v2, dict):
         if v1.keys() == v2.keys():
@@ -65,22 +83,35 @@ def apply_operation_on_tensors(v1, v2, operation):
     
     # 如果v1和v2都不是dict或list，则直接应用操作
     else:
+        if v2 is None:
+            return operation(v1)
         return operation(v1, v2)
 
-# 示例用法：
-if __name__ == "__main__":
-    # 测试用例
-    tensor1 = torch.tensor([1.0, 2.0])
-    tensor2 = torch.tensor([3.0, 4.0])
-    scalar = 5.0
+
+def to_devices(obj, device):
+    """
+    将输入的 tensor、model 或嵌套的结构（dict、list、tuple 等）中的所有 tensor 移动到指定的 device。
     
-    # Dict + Dict
-    print(apply_operation_on_tensors({'a': tensor1}, {'a': tensor2}, torch.add))
+    Args:
+        obj: 输入的 tensor、model 或嵌套的结构（dict、list、tuple 等）。
+        device: 目标设备，可以是字符串（如 'cuda'、'cpu'）或 torch.device 对象。
     
-    # List + Scalar
-    print(apply_operation_on_tensors([tensor1, tensor2], scalar, torch.add))
+    Returns:
+        移动到目标设备后的对象。
+    """
+    if isinstance(obj, torch.Tensor):
+        return obj.to(device)
+    elif isinstance(obj, torch.nn.Module):
+        return obj.to(device)
+    elif isinstance(obj, dict):
+        return {k: to_devices(v, device) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [to_devices(item, device) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(to_devices(item, device) for item in obj)
+    else:
+        return obj
+
     
-    # Tensor + Scalar
-    print(apply_operation_on_tensors(tensor1, scalar, torch.add))
 
 
