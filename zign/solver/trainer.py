@@ -1,3 +1,4 @@
+import json
 from typing import TypeVar, Generic, Tuple, Optional
 from zign.config import zConfig
 import time
@@ -18,6 +19,7 @@ class zTrainer(Generic[Co]):
     def __init__(self, config: Optional[Co]):
         self.config = config
         self._summary_writer = zSummaryWriter(self.config)
+        self.get_summary_writer().add_text("Config", json.dumps(self.config.to_dict(), indent=4))
         self.init_current_info()
         
     def get_summary_writer(self):
@@ -28,7 +30,7 @@ class zTrainer(Generic[Co]):
         self._current_iter = 0 # current iteration in one epoch 1-N
         self._num_batch = 0  # number of batches in one epoch
     
-    def update_learning_rate(self, losses):
+    def update_learning_rate(self, loss, val_losses):
         pass
     
     def update_learning_rate_iter(self, losses):
@@ -90,15 +92,23 @@ class zTrainer(Generic[Co]):
         for epoch in range(1, self.config.num_epochs+1):
             self._current_epoch = epoch
             start_time = time.time()
+            self.before_train_epoch()
             losses = self.train_one_epoch(dataloader)
+            self.after_train_epoch()
             self.save_epoch()
-            self.update_learning_rate(losses)
             val_losses = None
             if val_dataset is not None:
                 val_losses = self.validate(val_dataset.dataloader(self.config.batch_size, self.config.shuffle))
+            self.update_learning_rate(losses, val_losses)
             self.log_epoch_end(losses, val_losses, time.time() - start_time)
         self.init_current_info()
         self.get_summary_writer().close()
+        
+    def before_train_epoch(self):
+        pass
+    
+    def after_train_epoch(self):
+        pass
     
     def current_step(self):
         return (self.current_epoch() - 1) * self._num_batch + self.current_iter()
@@ -131,19 +141,21 @@ class zTrainer(Generic[Co]):
     def save_iter(self):
         step = self.current_step()
         if self.config.save_iter_freq > 0 and step > 0 and step % self.config.save_iter_freq == 0:
-            save_paths = io.save_model(self.save_models(), f"iter_{step}" , self.config.save_path())
+            save_paths = io.save_model(self.save_models(), f"iter_{step}", os.path.join(self.config.save_path(), self.get_summary_writer().folder()))
             self.save_latest(save_paths)
 
     def save_epoch(self):
         epoch = self.current_epoch()
         if (self.config.save_epoch_freq > 0 and epoch % self.config.save_epoch_freq == 0) or epoch == self.config.num_epochs:
-            save_paths = io.save_model(self.save_models(), f"epoch_{epoch}", self.config.save_path())
+            save_paths = io.save_model(self.save_models(), f"epoch_{epoch}", os.path.join(self.config.save_path(), self.get_summary_writer().folder()))
             self.save_latest(save_paths)
             
     def save_latest(self, save_paths):
         for name, save_path in save_paths.items():
-            shutil.copyfile(save_path, os.path.join(self.config.save_path(), 'latest_%s.pth' % name))
+            shutil.copyfile(save_path, os.path.join(self.config.save_path(), self.get_summary_writer().folder(), 'latest_%s.pth' % name))
             logging.info('saved model {} at {}'.format(name, save_path))
+            self.get_summary_writer().add_text("Save", save_path, self.current_epoch())
+            
 
 
         

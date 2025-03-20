@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import torch
-from zign.utils import to
+from zign.utils import to, io
 import torchvision.utils as vutis
 
 
@@ -19,10 +19,12 @@ class zSummaryWriter(SummaryWriter):
         Args:
             log_dir (str, optional): 日志文件保存目录。如果为 None，将自动生成一个基于当前时间的目录。
         """
-        current_time = datetime.now().strftime("%Y%m%d-%H%M%S")
-        log_dir = os.path.join(config.run_dir, config.mode, current_time)
+        self._current = datetime.now().strftime("%Y%m%d-%H%M%S")
+        log_dir = os.path.join(config.run_dir, config.mode, self._current)
         super().__init__(log_dir=log_dir)
         
+    def folder(self):
+        return self._current
     
     def add_losses(self, main_tag, losses, step):
         """

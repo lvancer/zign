@@ -1,6 +1,7 @@
 from typing import TypeVar, Generic, Optional
 from zign.config import zConfig
 import torch
+import logging
 
 
 Co = TypeVar('Co', bound=zConfig)
@@ -18,5 +19,6 @@ class zTester(Generic[Co]):
         for idx, inputs in enumerate(dataloader):
             with torch.no_grad():
                 self.test_one(idx, inputs)
+                logging.info(f'{idx+1}/{len(dataloader)}')
                 
 

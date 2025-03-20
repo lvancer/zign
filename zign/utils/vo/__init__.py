@@ -1,0 +1,1 @@
+from .palette import Palette, get_simple_palette

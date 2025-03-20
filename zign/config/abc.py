@@ -23,6 +23,11 @@ class BaseConfig():
             setattr(self, k, v)
             
 
+    def to_dict(self):
+        """将配置类的实例转换为字典"""
+        return {key: value for key, value in vars(self).items()}
+            
+
             
     
             

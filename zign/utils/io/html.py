@@ -78,6 +78,10 @@ class HTML:
         ims, txts, links = [], [], []
         for label, image in zip(labels, images):
             image_name = f'{name}_{label}.png'
+            
+            if image.ndim == 2:
+                image = image.unsqueeze(0)
+            
             vutils.save_image(image, os.path.join(self.get_image_dir(), image_name))
             ims.append(image_name)
             txts.append(label)
