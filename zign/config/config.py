@@ -12,7 +12,7 @@ class zConfig(BaseConfig):
         self.save_dir = '.checkpoints'
         self.run_dir = '.runs'
         self.output_dir = '.output'
-        self.pretrained = '.pretrained'
+        self.pretrained_dir = '.pretrained'
         
         self.save_iter_freq = 0 # 每训练几次iter保存一次模型，0表示不保存
         self.save_epoch_freq = 1 # 每训练几次epoch保存一次模型
@@ -20,6 +20,7 @@ class zConfig(BaseConfig):
         self.num_epochs = 10
         self.batch_size = 64
         self.shuffle = True
+        self.dataset = ''
         
         # 学习率相关
         self.lr = 0.0002
@@ -52,7 +53,7 @@ class zConfig(BaseConfig):
         
         
     def pretrained_path(self):
-        return os.path.join(self.pretrained, self.mode)
+        return os.path.join(self.pretrained_dir, self.mode)
     
     def save_path(self):
         return os.path.join(self.save_dir, self.mode)

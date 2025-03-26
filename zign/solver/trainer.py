@@ -30,6 +30,9 @@ class zTrainer(Generic[Co]):
         self._current_iter = 0 # current iteration in one epoch 1-N
         self._num_batch = 0  # number of batches in one epoch
     
+    def float_precision_format(self):
+        return '.3f'
+    
     def update_learning_rate(self, loss, val_losses):
         pass
     
@@ -48,12 +51,15 @@ class zTrainer(Generic[Co]):
     def validate(self, dataloader):
         with torch.no_grad():
             total_loss = None
-            for idx, inputs in enumerate(dataloader):
+            pbar = tqdm(dataloader)
+            pbar.set_description(f"[Epoch {self.current_epoch()} Validate]")
+            for idx, inputs in enumerate(pbar):
                 losses = self.validate_one_iter(idx, inputs)
                 if total_loss is None:
                     total_loss = losses
                 else:
                     total_loss = to.apply_operation_on_tensors(total_loss, losses, torch.add)
+                pbar.set_postfix(to.tensors_to_item(losses, self.float_precision_format()))
             if total_loss is None:
                 return None
             return to.apply_operation_on_tensors(total_loss, len(dataloader), torch.div)
@@ -76,7 +82,7 @@ class zTrainer(Generic[Co]):
             self.save_iter()
             self.update_learning_rate_iter(losses)
             self.log_iter_end(losses)
-            pbar.set_postfix(to.tensors_to_item(losses, '.3f'))
+            pbar.set_postfix(to.tensors_to_item(losses, self.float_precision_format()))
         if total_loss is None:
             return None
         return to.apply_operation_on_tensors(total_loss, self.num_batch(), torch.div)
@@ -127,11 +133,9 @@ class zTrainer(Generic[Co]):
         self.get_summary_writer().add_losses("Step", losses, step)
 
     def log_epoch_end(self, train_losses, val_losses, duration):
-        if val_losses is None:
-            val_losses = to.apply_operation_on_tensors(train_losses, 0.8, torch.mul)
-        msg = f"Epoch: {self.current_epoch()}, Epoch time = {duration:.3f}s, Train Loss: {to.tensors_to_item(train_losses, '.3f')}"
+        msg = f"Epoch: {self.current_epoch()}, Epoch time = {duration:.3f}s, Train Loss: {to.tensors_to_item(train_losses, self.float_precision_format())}"
         if val_losses is not None:
-            msg = msg + f", Validate Loss: {to.tensors_to_item(val_losses, '.3f')}"
+            msg = msg + f", Validate Loss: {to.tensors_to_item(val_losses, self.float_precision_format())}"
         logging.info(msg)
         losses = {f"train_{key}": value for key, value in train_losses.items()}
         if val_losses is not None:

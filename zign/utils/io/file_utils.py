@@ -50,7 +50,7 @@ def save_model(models: dict, key: str, save_dir: str) -> dict:
     return saved_paths
 
 
-def load_model(models: dict, key: str, save_dir: str) -> dict:
+def load_model(models: dict, key: str, save_dir: str, mode='eval') -> dict:
     """
     从磁盘加载PyTorch模型。
     
@@ -81,7 +81,8 @@ def load_model(models: dict, key: str, save_dir: str) -> dict:
         
         # 加载模型状态字典
         model.load_state_dict(torch.load(file_path))
-        model.eval()  # 设置为评估模式
+        if mode == 'eval':
+            model.eval()  # 设置为评估模式
         
         # 记录加载后的模型
         loaded_models[model_name] = model
