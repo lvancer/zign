@@ -87,7 +87,7 @@ class zTrainer(Generic[Co]):
             return None
         return to.apply_operation_on_tensors(total_loss, self.num_batch(), torch.div)
     
-    def train(self, train_dataset, val_dataset=None):
+    def train(self, train_dataset, val_dataset=None, val_batch_size: int=0, val_shuffle: bool=False):
         logging.info('starting training')
 
         if self.graph_models() is not None:
@@ -104,7 +104,8 @@ class zTrainer(Generic[Co]):
             self.save_epoch()
             val_losses = None
             if val_dataset is not None:
-                val_losses = self.validate(val_dataset.dataloader(self.config.batch_size, self.config.shuffle))
+                batch_size = val_batch_size if val_batch_size > 0 else self.config.batch_size
+                val_losses = self.validate(val_dataset.dataloader(batch_size, val_shuffle))
             self.update_learning_rate(losses, val_losses)
             self.log_epoch_end(losses, val_losses, time.time() - start_time)
         self.init_current_info()
