@@ -87,19 +87,23 @@ class zTrainer(Generic[Co]):
             return None
         return to.apply_operation_on_tensors(total_loss, self.num_batch(), torch.div)
     
+    
     def train(self, train_dataset, val_dataset=None, val_batch_size: int=0, val_shuffle: bool=False):
         logging.info('starting training')
 
         if self.graph_models() is not None:
             self.get_summary_writer().add_graphs(self.save_models(), self.graph_models(), self.config.device)
         
-        dataloader = train_dataset.dataloader(self.config.batch_size, self.config.shuffle)
-        self._num_batch = len(dataloader)
+        # dataloader = train_dataset.dataloader(self.config.batch_size, self.config.shuffle)
+        # self._num_batch = len(dataloader)
         for epoch in range(1, self.config.num_epochs+1):
             self._current_epoch = epoch
             start_time = time.time()
             self.before_train_epoch()
-            losses = self.train_one_epoch(dataloader)
+            _dataloader = train_dataset.dataloader(self.config.batch_size, self.config.shuffle)
+            self._num_batch = len(_dataloader)
+            losses = self.train_one_epoch(_dataloader)
+            train_dataset.epoch_count = self._current_epoch
             self.after_train_epoch()
             self.save_epoch()
             val_losses = None

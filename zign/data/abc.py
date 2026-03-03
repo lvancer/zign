@@ -13,5 +13,4 @@ class BaseDataset(data.Dataset):
         pass
 
     
-    
         
