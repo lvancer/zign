@@ -6,13 +6,14 @@ from zign.data.sampler import EpochSplitSampler
 
 class zDataset(BaseDataset):
     
-    def __init__(self, sample_ratio=1):
+    def __init__(self, sample_ratio=1, cache=False):
         self.epoch_count = 0
         self.sample_ratio = sample_ratio
         self._sampler = None
         self._collate_fn = None
         self._split = 0
         self._test = False
+        self.cache = cache
     
     def dataloader(self, batch_size, shuffle=True, collate_fn=None, sampler=None, *args, **kwargs)-> data.DataLoader:
         if collate_fn is None and self._collate_fn is not None:

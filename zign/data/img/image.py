@@ -20,6 +20,8 @@ class zImageDataset(zDataset):
         self.root = os.path.join(self.dataset_dir, self.path)
         self.file_pairs = self.create_file_pairs()
         self.size = size
+        if self.cache:
+            self._cache = {}
 
     def __len__(self):
         return len(self.file_pairs)
@@ -52,9 +54,15 @@ class zImageDataset(zDataset):
         # 读取所有图像 (PIL -> numpy)
         images = []
         for p in pairs:
+            if self.cache and p in self._cache:
+                images.append(self._cache[p])
+                continue
             with Image.open(p) as img:
                 arr = np.array(img.convert("RGB"))
             images.append(arr)
+            if self.cache:
+                self._cache[p] = arr
+
         # images = [np.array(Image.open(p).convert("RGB")) for p in pairs]
 
         # Albumentations 同步变换
