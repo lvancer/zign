@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="zign",
-    version="0.1.0",
+    version="0.1.1",
     url="https://github.com/lvancer/zign",
     author="lvancer",
     author_email="lin029011@163.com",
