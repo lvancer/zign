@@ -47,4 +47,3 @@ class zDatasetGroup(zDataset):
     
     def shuffle_by_split(self):
         self.all_list = random.sample(self.all_list, len(self.all_list))
-        print('1')

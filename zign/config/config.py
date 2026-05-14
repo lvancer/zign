@@ -14,6 +14,8 @@ class zConfig(BaseConfig):
         self.output_dir = '.output'
         self.pretrained_dir = '.pretrained'
         
+        self.batch_epochs = 1
+        
         self.desc = '' # 训练描述
         
         self.save_iter_freq = 0 # 每训练几次iter保存一次模型，0表示不保存

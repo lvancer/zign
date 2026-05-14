@@ -22,6 +22,9 @@ class zTrainer(Generic[Co]):
         self.get_summary_writer().add_text("Config", json.dumps(self.config.to_dict(), indent=4))
         self.init_current_info()
         
+        if self.config.batch_epochs > 1:
+            self.batch_epochs_loss = None
+        
     def get_summary_writer(self):
         return self._summary_writer
         
@@ -146,7 +149,22 @@ class zTrainer(Generic[Co]):
         if val_losses is not None:
             losses.update({f"val_{key}": value for key, value in val_losses.items()})
         self.get_summary_writer().add_losses("Epoch", losses, self.current_epoch())
-    
+        
+        
+        if self.config.batch_epochs > 1:
+            if self.batch_epochs_loss is None:
+                self.batch_epochs_loss = train_losses
+            else:
+                self.batch_epochs_loss = to.apply_operation_on_tensors(self.batch_epochs_loss, train_losses, torch.add)
+            
+            if self.current_epoch() > 0 and self.current_epoch() % self.config.batch_epochs == 0:
+                batch_epoch = self.current_epoch() / self.config.batch_epochs
+                total_loss = to.apply_operation_on_tensors(self.batch_epochs_loss, self.config.batch_epochs, torch.div)
+                self.get_summary_writer().add_losses("BatchEpoch", total_loss, batch_epoch)
+                
+                self.batch_epochs_loss = None
+        
+        
     def save_iter(self):
         step = self.current_step()
         if self.config.save_iter_freq > 0 and step > 0 and step % self.config.save_iter_freq == 0:
