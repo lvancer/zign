@@ -14,14 +14,16 @@ class zDataset(BaseDataset):
         self._split = 0
         self._test = False
         self.cache = cache
-    
+
     def dataloader(self, batch_size, shuffle=True, collate_fn=None, sampler=None, *args, **kwargs)-> data.DataLoader:
         if collate_fn is None and self._collate_fn is not None:
             collate_fn = self._collate_fn
         if sampler is None and self._sampler is not None:
             sampler = self._sampler
-            
+
         if self._split > 1:
+            if shuffle and self.epoch_count % self._split == 0:
+                self.shuffle_by_split()
             sampler = EpochSplitSampler(len(self), self._split, self.epoch_count % self._split, shuffle)
             return data.DataLoader(self, batch_size, shuffle=False, collate_fn=collate_fn, sampler=sampler, *args, **kwargs)
         
@@ -37,9 +39,14 @@ class zDataset(BaseDataset):
         self._split = split
         return self
     
+    def shuffle_by_split(self):
+        pass
+    
     def test(self):
         self._test = True
         return self
     
     def is_test(self):
         return self._test
+    
+    

@@ -22,7 +22,7 @@ class zImageDataset(zDataset):
         self.size = size
         if self.cache:
             self._cache = {}
-
+            
     def __len__(self):
         return len(self.file_pairs)
         
@@ -95,3 +95,6 @@ class zImageDataset(zDataset):
     def __getitem__(self, index):
         return self.load(index)
 
+    def shuffle_by_split(self):
+        self.file_pairs = random.sample(self.file_pairs, len(self.file_pairs))
+        
