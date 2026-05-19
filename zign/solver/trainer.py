@@ -58,6 +58,8 @@ class zTrainer(Generic[Co]):
             pbar.set_description(f"[Epoch {self.current_epoch()} Validate]")
             for idx, inputs in enumerate(pbar):
                 losses = self.validate_one_iter(idx, inputs)
+                for key, value in losses.items():
+                    losses[key] = value.detach().cpu()
                 if total_loss is None:
                     total_loss = losses
                 else:
@@ -78,6 +80,8 @@ class zTrainer(Generic[Co]):
         for idx, inputs in enumerate(pbar):
             self._current_iter = idx + 1
             losses = self.train_one_iter(inputs)
+            for key, value in losses.items():
+                losses[key] = value.detach().cpu()
             if total_loss is None:
                 total_loss = losses
             else:
